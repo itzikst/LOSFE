@@ -33,6 +33,7 @@ async function initMap() {
     zoom: 12,
     center: position,
     mapId: "DEMO_MAP_ID",
+    mapTypeId: "terrain",
   });
 
   // The marker, positioned at Jerusalem
