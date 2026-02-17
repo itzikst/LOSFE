@@ -90,3 +90,22 @@ h1 {
   width: 100%;
   box-sizing: border-box;
 }
+
+.response-field {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#response {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f1f1f1;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85em;
+  resize: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

@@ -9,6 +9,10 @@ document.querySelector('#app').innerHTML = `
       <label for="coords">Lat, Long:</label>
       <input type="text" id="coords" readonly placeholder="Click on map...">
     </div>
+    <div class="field response-field">
+      <label for="response">API Response:</label>
+      <textarea id="response" readonly placeholder="Response will appear here..."></textarea>
+    </div>
   </div>
 `
 
@@ -39,10 +43,23 @@ async function initMap() {
   });
 
   // Add click listener
-  map.addListener("click", (mapsMouseEvent) => {
+  map.addListener("click", async (mapsMouseEvent) => {
     const coords = mapsMouseEvent.latLng.toJSON();
     const coordsStr = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
     document.getElementById("coords").value = coordsStr;
+
+    const responseArea = document.getElementById("response");
+    responseArea.value = "Fetching data...";
+
+    try {
+      const apiUrl = `https://lineofsight-487018.lm.r.appspot.com/?lat=${coords.lat}&lng=${coords.lng}`;
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error(`Status: ${response.status}`);
+      const data = await response.json();
+      responseArea.value = JSON.stringify(data, null, 2);
+    } catch (error) {
+      responseArea.value = `Error fetching data: ${error.message}`;
+    }
   });
 }
 
