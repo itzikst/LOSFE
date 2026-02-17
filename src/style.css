@@ -50,5 +50,43 @@ h1 {
   height: 100%;
   width: 80%;
   float: left;
-  /* or display: inline-block, or flex item */
+}
+
+#side-panel {
+  width: 20%;
+  height: 100%;
+  float: left;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: white;
+  border-left: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#side-panel h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-size: 0.9em;
+  color: #666;
+}
+
+#coords {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  font-family: monospace;
+  width: 100%;
+  box-sizing: border-box;
 }

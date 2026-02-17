@@ -5,6 +5,13 @@ import { setupCounter } from './counter.js'
 
 document.querySelector('#app').innerHTML = `
   <div id="map"></div>
+  <div id="side-panel">
+    <h3>Coordinates</h3>
+    <div class="field">
+      <label for="coords">Lat, Long:</label>
+      <input type="text" id="coords" readonly placeholder="Click on map...">
+    </div>
+  </div>
 `
 
 
@@ -31,6 +38,13 @@ async function initMap() {
     map: map,
     position: position,
     title: "Jerusalem",
+  });
+
+  // Add click listener
+  map.addListener("click", (mapsMouseEvent) => {
+    const coords = mapsMouseEvent.latLng.toJSON();
+    const coordsStr = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+    document.getElementById("coords").value = coordsStr;
   });
 }
 

@@ -1,0 +1,14 @@
+runtime: nodejs20
+
+handlers:
+  # Serve all files from the dist directory
+  - url: /
+    static_files: dist/index.html
+    upload: dist/index.html
+
+  - url: /assets
+    static_dir: dist/assets
+
+  - url: /(.*)
+    static_files: dist/\1
+    upload: dist/(.*)
