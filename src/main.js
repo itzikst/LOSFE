@@ -4,13 +4,6 @@ import './style.css'
 document.querySelector('#app').innerHTML = `
   <div id="map"></div>
   <div id="side-panel">
-    <div class="field toggle-field">
-      <label class="switch">
-        <input type="checkbox" id="draw-mode">
-        <span class="slider round"></span>
-      </label>
-      <span id="toggle-label" class="toggle-label">Drag to pan map</span>
-    </div>
     <div class="field">
       <label for="coords">START / END:</label>
       <textarea id="coords" readonly placeholder="Click and drag on map..."></textarea>
@@ -49,9 +42,21 @@ async function initMap() {
     title: "Jerusalem",
   });
 
+  // Create custom control for Draw Mode
+  const controlDiv = document.createElement("div");
+  controlDiv.className = "field toggle-field map-control";
+  controlDiv.innerHTML = `
+    <label class="switch">
+      <input type="checkbox" id="draw-mode">
+      <span class="slider round"></span>
+    </label>
+    <span id="toggle-label" class="toggle-label">Drag to pan map</span>
+  `;
+  map.controls[google.maps.ControlPosition.LEFT_TOP].push(controlDiv);
+
   // Handle toggle label change
-  const drawModeCheckbox = document.getElementById("draw-mode");
-  const toggleLabel = document.getElementById("toggle-label");
+  const drawModeCheckbox = controlDiv.querySelector("#draw-mode");
+  const toggleLabel = controlDiv.querySelector("#toggle-label");
   drawModeCheckbox.addEventListener("change", () => {
     toggleLabel.textContent = drawModeCheckbox.checked ? "Drag to test Line of Sight" : "Drag to pan map";
   });
