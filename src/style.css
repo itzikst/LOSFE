@@ -89,7 +89,12 @@ h1 {
   font-family: monospace;
   width: 100%;
   box-sizing: border-box;
+  height: 80px;
+  resize: none;
+  font-size: 0.9em;
+  line-height: 1.4;
 }
+
 
 .response-field {
   flex-grow: 1;

@@ -6,8 +6,8 @@ document.querySelector('#app').innerHTML = `
   <div id="side-panel">
     <h3>Coordinates</h3>
     <div class="field">
-      <label for="coords">Lat, Long:</label>
-      <input type="text" id="coords" readonly placeholder="Click on map...">
+      <label for="coords">Start / End Coordinates:</label>
+      <textarea id="coords" readonly placeholder="Click and drag on map..."></textarea>
     </div>
     <div class="field response-field">
       <label for="response">API Response:</label>
@@ -43,17 +43,61 @@ async function initMap() {
     title: "Jerusalem",
   });
 
-  // Add click listener
-  map.addListener("click", async (mapsMouseEvent) => {
-    const coords = mapsMouseEvent.latLng.toJSON();
-    const coordsStr = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
-    document.getElementById("coords").value = coordsStr;
+  // Drag-to-draw logic
+  let drawing = false;
+  let polyline = null;
+  let startLatLng = null;
 
+  map.addListener("mousedown", (e) => {
+    drawing = true;
+    startLatLng = e.latLng;
+
+    // Disable map features like panning
+    map.setOptions({ draggable: false, scrollwheel: false, disableDoubleClickZoom: true });
+
+    if (polyline) polyline.setMap(null);
+    polyline = new google.maps.Polyline({
+      path: [startLatLng, startLatLng],
+      map: map,
+      strokeColor: "#FF0000",
+      strokeOpacity: 1.0,
+      strokeWeight: 2,
+    });
+  });
+
+  map.addListener("mousemove", (e) => {
+    if (!drawing) return;
+    const currentLatLng = e.latLng;
+    polyline.setPath([startLatLng, currentLatLng]);
+  });
+
+  google.maps.event.addDomListener(window, "mouseup", () => {
+    if (!drawing) return;
+    drawing = false;
+
+    // Re-enable map features
+    map.setOptions({ draggable: true, scrollwheel: true, disableDoubleClickZoom: false });
+
+    // Final coordinates for API call
+    const path = polyline.getPath();
+    const start = path.getAt(0);
+    const end = path.getAt(1);
+
+    if (start && end) {
+      // Update coordinates display only on mouseup
+      const coordsArea = document.getElementById("coords");
+      coordsArea.value = `START - ${start.lat().toFixed(6)}, ${start.lng().toFixed(6)}\nEND - ${end.lat().toFixed(6)}, ${end.lng().toFixed(6)}`;
+
+      fetchLOS(start.lat(), start.lng(), end.lat(), end.lng());
+    }
+  });
+
+  async function fetchLOS(sLat, sLng, eLat, eLng) {
     const responseArea = document.getElementById("response");
     responseArea.value = "Fetching data...";
 
     try {
-      const apiUrl = `https://lineofsight-487018.lm.r.appspot.com/?lat=${coords.lat}&lng=${coords.lng}`;
+      const apiUrl = `https://lineofsight-487018.lm.r.appspot.com/?start_lat=${sLat}&start_lng=${sLng}&end_lat=${eLat}&end_lng=${eLng}`;
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error(`Status: ${response.status}`);
       const data = await response.json();
@@ -61,7 +105,7 @@ async function initMap() {
     } catch (error) {
       responseArea.value = `Error fetching data: ${error.message}`;
     }
-  });
+  }
 }
 
 // Load the Google Maps script
