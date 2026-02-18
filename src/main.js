@@ -6,10 +6,10 @@ document.querySelector('#app').innerHTML = `
   <div id="side-panel">
     <div class="field toggle-field">
       <label class="switch">
-        <input type="checkbox" id="draw-mode" checked>
+        <input type="checkbox" id="draw-mode">
         <span class="slider round"></span>
       </label>
-      <span class="toggle-label">Draw Mode</span>
+      <span id="toggle-label" class="toggle-label">Drag to pan map</span>
     </div>
     <div class="field">
       <label for="coords">START / END:</label>
@@ -47,6 +47,13 @@ async function initMap() {
     map: map,
     position: position,
     title: "Jerusalem",
+  });
+
+  // Handle toggle label change
+  const drawModeCheckbox = document.getElementById("draw-mode");
+  const toggleLabel = document.getElementById("toggle-label");
+  drawModeCheckbox.addEventListener("change", () => {
+    toggleLabel.textContent = drawModeCheckbox.checked ? "Drag to test Line of Sight" : "Drag to pan map";
   });
 
   // Drag-to-draw logic
