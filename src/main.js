@@ -66,52 +66,76 @@ async function initMap() {
   let polyline = null;
   let startLatLng = null;
 
-  map.addListener("mousedown", (e) => {
+  // Helper for touch to latlng
+  const getTouchLatLng = (e) => {
+    if (!e.touches || e.touches.length === 0) return null;
+    const touch = e.touches[0];
+    const mapDiv = document.getElementById("map");
+    const rect = mapDiv.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    // This is a bit complex since Google Maps doesn't provide a direct
+    // "getLatLngFromPixel" on the map instance easily without an OverlayView.
+    // However, the standard mouse events are usually enough if we prevent default behavior.
+    return null; // Stick to raw events but handle them better
+  };
+
+  const handleStart = (latLng) => {
     const isDrawMode = document.getElementById("draw-mode").checked;
     if (!isDrawMode) return;
 
     drawing = true;
-    startLatLng = e.latLng;
+    startLatLng = latLng;
 
-    // Disable map features like panning
     map.setOptions({ draggable: false, scrollwheel: false, disableDoubleClickZoom: true });
 
     if (polyline) polyline.setMap(null);
     polyline = new google.maps.Polyline({
       path: [startLatLng, startLatLng],
       map: map,
-      strokeColor: "#FF0000",
+      strokeColor: "#000000",
       strokeOpacity: 1.0,
-      strokeWeight: 2,
+      strokeWeight: 3,
+      icons: []
     });
-  });
+  };
 
-  map.addListener("mousemove", (e) => {
+  const handleMove = (latLng) => {
     if (!drawing) return;
-    const currentLatLng = e.latLng;
-    polyline.setPath([startLatLng, currentLatLng]);
-  });
+    polyline.setPath([startLatLng, latLng]);
+  };
 
-  google.maps.event.addDomListener(window, "mouseup", () => {
+  const handleEnd = () => {
     if (!drawing) return;
     drawing = false;
-
-    // Re-enable map features
     map.setOptions({ draggable: true, scrollwheel: true, disableDoubleClickZoom: false });
 
-    // Final coordinates for API call
     const path = polyline.getPath();
     const start = path.getAt(0);
     const end = path.getAt(1);
 
     if (start && end) {
-      // Update coordinates display only on mouseup
       const coordsArea = document.getElementById("coords");
       coordsArea.value = `START - ${start.lat().toFixed(6)}, ${start.lng().toFixed(6)}\nEND - ${end.lat().toFixed(6)}, ${end.lng().toFixed(6)}`;
-
       fetchLOS(start.lat(), start.lng(), end.lat(), end.lng());
     }
-  });
+  };
+
+  map.addListener("mousedown", (e) => handleStart(e.latLng));
+  map.addListener("mousemove", (e) => handleMove(e.latLng));
+  google.maps.event.addDomListener(window, "mouseup", () => handleEnd());
+
+  // Mobile specific: Prevent scrolling when drawing
+  const mapDiv = document.getElementById("map");
+  mapDiv.addEventListener("touchstart", (e) => {
+    const isDrawMode = document.getElementById("draw-mode").checked;
+    if (isDrawMode) {
+      // Prevents the map from panning/scrolling the page
+      // but we still rely on the Map's mousedown listener which handles touch.
+      // e.preventDefault(); // CAUTION: Might block zoom if not careful
+    }
+  }, { passive: true });
 
   async function fetchLOS(sLat, sLng, eLat, eLng) {
     const responseArea = document.getElementById("response");
@@ -123,8 +147,34 @@ async function initMap() {
       if (!response.ok) throw new Error(`Status: ${response.status}`);
       const data = await response.json();
       responseArea.value = JSON.stringify(data, null, 2);
+
+      // Update line color based on result
+      if (polyline) {
+        if (data === true) {
+          polyline.setOptions({ strokeColor: "#4CAF50", icons: [] }); // Green
+        } else if (data === false) {
+          polyline.setOptions({ strokeColor: "#F44336", icons: [] }); // Red
+        }
+      }
     } catch (error) {
       responseArea.value = `Error fetching data: ${error.message}`;
+
+      // Dotted yellow line for errors
+      if (polyline) {
+        polyline.setOptions({
+          strokeColor: "#FFEB3B", // Yellow
+          strokeOpacity: 0,
+          icons: [{
+            icon: {
+              path: 'M 0,-1 0,1',
+              strokeOpacity: 1,
+              scale: 4
+            },
+            offset: '0',
+            repeat: '20px'
+          }]
+        });
+      }
     }
   }
 }

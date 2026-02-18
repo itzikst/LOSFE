@@ -1,0 +1,17 @@
+{
+    "name": "Line of Sight Map",
+    "short_name": "LOS Map",
+    "description": "Calculate Line of Sight on a Google Map",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4CAF50",
+    "icons": [
+        {
+            "src": "/favicon.avif",
+            "sizes": "512x512",
+            "type": "image/avif",
+            "purpose": "any maskable"
+        }
+    ]
+}
