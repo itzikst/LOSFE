@@ -4,9 +4,15 @@ import './style.css'
 document.querySelector('#app').innerHTML = `
   <div id="map"></div>
   <div id="side-panel">
-    <h3>Coordinates</h3>
+    <div class="field toggle-field">
+      <label class="switch">
+        <input type="checkbox" id="draw-mode" checked>
+        <span class="slider round"></span>
+      </label>
+      <span class="toggle-label">Draw Mode</span>
+    </div>
     <div class="field">
-      <label for="coords">Start / End Coordinates:</label>
+      <label for="coords">START / END:</label>
       <textarea id="coords" readonly placeholder="Click and drag on map..."></textarea>
     </div>
     <div class="field response-field">
@@ -49,6 +55,9 @@ async function initMap() {
   let startLatLng = null;
 
   map.addListener("mousedown", (e) => {
+    const isDrawMode = document.getElementById("draw-mode").checked;
+    if (!isDrawMode) return;
+
     drawing = true;
     startLatLng = e.latLng;
 
