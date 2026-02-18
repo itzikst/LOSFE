@@ -8,6 +8,7 @@ document.querySelector('#app').innerHTML = `
       <label for="coords">START / END:</label>
       <textarea id="coords" readonly placeholder="Click and drag on map..."></textarea>
     </div>
+    <button id="clear-selection" class="btn secondary">Clear Selection</button>
     <div class="field response-field">
       <label for="response">API Response:</label>
       <textarea id="response" readonly placeholder="Response will appear here..."></textarea>
@@ -88,7 +89,13 @@ async function initMap() {
     drawing = true;
     startLatLng = latLng;
 
-    map.setOptions({ draggable: false, scrollwheel: false, disableDoubleClickZoom: true });
+    // Lock map gestures
+    map.setOptions({
+      draggable: false,
+      scrollwheel: false,
+      disableDoubleClickZoom: true,
+      gestureHandling: "none"
+    });
 
     if (polyline) polyline.setMap(null);
     polyline = new google.maps.Polyline({
@@ -109,7 +116,13 @@ async function initMap() {
   const handleEnd = () => {
     if (!drawing) return;
     drawing = false;
-    map.setOptions({ draggable: true, scrollwheel: true, disableDoubleClickZoom: false });
+    // Restore map gestures
+    map.setOptions({
+      draggable: true,
+      scrollwheel: true,
+      disableDoubleClickZoom: false,
+      gestureHandling: "greedy"
+    });
 
     const path = polyline.getPath();
     const start = path.getAt(0);
@@ -128,14 +141,23 @@ async function initMap() {
 
   // Mobile specific: Prevent scrolling when drawing
   const mapDiv = document.getElementById("map");
-  mapDiv.addEventListener("touchstart", (e) => {
+
+  const blockGesture = (e) => {
     const isDrawMode = document.getElementById("draw-mode").checked;
     if (isDrawMode) {
-      // Prevents the map from panning/scrolling the page
-      // but we still rely on the Map's mousedown listener which handles touch.
-      // e.preventDefault(); // CAUTION: Might block zoom if not careful
+      if (e.cancelable) e.preventDefault();
     }
-  }, { passive: true });
+  };
+
+  mapDiv.addEventListener("touchstart", blockGesture, { passive: false });
+  mapDiv.addEventListener("touchmove", blockGesture, { passive: false });
+
+  document.getElementById("clear-selection").addEventListener("click", () => {
+    if (polyline) polyline.setMap(null);
+    polyline = null;
+    document.getElementById("coords").value = "";
+    document.getElementById("response").value = "";
+  });
 
   async function fetchLOS(sLat, sLng, eLat, eLng) {
     const responseArea = document.getElementById("response");
